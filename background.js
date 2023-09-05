@@ -1,43 +1,58 @@
-let preVideoId;
-chrome.tabs.onUpdated.addListener((tabId, tab) => {
-  if (tab.url && tab.url.includes("bilibili.com/video")) {
-    const url = new URL(tab.url);
-    const path = url.pathname;
-
-    const bv = path.split("/")[2];
-
-    const p = url.searchParams.get("p") ? url.searchParams.get("p") : 0;
-
-    const videoId = [bv, p].join("+");
-
-    if (preVideoId && preVideoId === videoId) return;
-
-    preVideoId = videoId;
-
-    chrome.tabs.sendMessage(
-      tabId,
-      {
-        type: "NEW",
-        videoId,
-      },
-      function (response) {
-        if (chrome.runtime.lastError) {
-          // 发生错误，可以在这里处理错误信息
-          return;
-        }
-      }
-    );
+function updateIcon(count) {
+  if (count) {
+    chrome.action.setIcon({ path: "/assets/ext-icon.png" });
+    chrome.action.setBadgeBackgroundColor({ color: "skyblue" });
+    chrome.action.setBadgeText({ text: "" + count });
+  } else {
+    chrome.action.setIcon({ path: "/assets/ext-icon-gray.png" });
+    chrome.action.setBadgeBackgroundColor({ color: "gray" });
+    chrome.action.setBadgeText({ text: "" + count });
   }
-});
+}
 
-chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-  if (msg.action === "updateIcon") {
-    if (msg.value) {
-      console.log("changing to skyblue");
-      chrome.action.setIcon({ path: "/assets/bookmarks-icon.png" });
-    } else {
-      console.log("changing to gray");
-      chrome.action.setIcon({ path: "/assets/bookmarks-icon-gray.png" });
-    }
+const fetchRecords = async () => {
+  return new Promise((resolve) =>
+    chrome.storage.local.get(["Bili-LaterToSee"], (obj) => {
+      resolve(obj["Bili-LaterToSee"] ? JSON.parse(obj["Bili-LaterToSee"]) : []);
+    })
+  );
+};
+
+const init = async () => {
+  const currentRecords = await fetchRecords();
+  updateIcon(currentRecords.length);
+};
+
+init();
+
+chrome.runtime.onMessage.addListener(async function (
+  msg,
+  sender,
+  sendResponse
+) {
+  let currentRecords;
+  if (msg.action === "ADD") {
+    currentRecords = await fetchRecords();
+    currentRecords = [...currentRecords, msg.newRecord];
+    updateIcon(currentRecords.length);
+
+    chrome.storage.local.set({
+      "Bili-LaterToSee": JSON.stringify(currentRecords),
+    });
+  } else if (msg.action === "PLAY") {
+    chrome.tabs.create({
+      url: "https://www.bilibili.com" + msg.url,
+    });
+  } else if (msg.action === "DELETE") {
+    currentRecords = await fetchRecords();
+    currentRecords = currentRecords.filter(
+      (record) => record.time !== msg.time || record.url !== msg.url
+    );
+
+    updateIcon(currentRecords.length);
+
+    chrome.storage.local.set({
+      "Bili-LaterToSee": JSON.stringify(currentRecords),
+    });
   }
 });

@@ -1,7 +1,7 @@
 {
-  "name": "Bilibili - Bookmarks",
+  "name": "Bilibili - laterToSee",
   "version": "0.1.0",
-  "description": "Saving timestamps in Bilibili videos",
+  "description": "Saving Bilibili videos in list to see it later",
   "permissions": ["storage", "tabs"],
   "host_permissions": ["https://www.bilibili.com/*"],
   "background": {
@@ -9,8 +9,9 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.bilibili.com/*"],
-      "js": ["contentScript.js"]
+      "matches": ["https://www.bilibili.com/video/*"],
+      "js": ["contentScript.js"],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
@@ -21,7 +22,7 @@
   ],
   "action": {
     "default_icon": {
-      "128": "assets/bookmarks-icon-gray.png"
+      "128": "assets/ext-icon.png"
     },
     "default_title": "Bilibili - Bookmarks",
     "default_popup": "popup.html"

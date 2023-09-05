@@ -1,6 +1,8 @@
 .container {
   width: 280px;
   color: #314d3e;
+  height: 280px;
+  overflow: scroll;
 }
 
 .title {
@@ -14,11 +16,7 @@
   font-size: 12px;
   margin: 0;
   padding: 0px 2px;
-}
-
-.textbox:focus {
-  outline: 0;
-  border-color: #66afe9;
+  cursor: pointer;
 }
 
 .bookmarks {
@@ -39,6 +37,17 @@
 
 .bookmark-title {
   padding-left: 2px;
+}
+
+.bookmark-time {
+  font-size: 10px;
+  color: gray;
+}
+
+.bookmark:hover {
+  outline: 0;
+  border-color: #1e0404;
+  color: #1e0404;
 }
 
 .bookmark-controls img {
